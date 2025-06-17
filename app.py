@@ -69,6 +69,11 @@ if not df.empty:
 # 🏙️ 城市負載模擬
 # ======================
 st.subheader("🔢 城市級電力調度模擬：六都")
+
+# 再次明確指定順序（保險做法）
+ordered_cities = ["臺北市", "新北市", "桃園市", "臺中市", "臺南市", "高雄市"]
+city_df = city_df.set_index("城市").loc[ordered_cities].reset_index()
+
 city_ratios = {
     "臺北市": 0.18,
     "新北市": 0.22,
@@ -92,10 +97,6 @@ for city, ratio in city_ratios.items():
     city_data["模擬備轉容量(MW)"].append(round(reserve_capacity, 2))
     
 city_df = pd.DataFrame(city_data)
-
-# 再次明確指定順序（保險做法）
-ordered_cities = ["臺北市", "新北市", "桃園市", "臺中市", "臺南市", "高雄市"]
-city_df = city_df.set_index("城市").loc[ordered_cities].reset_index()
 
 # 顯示表格與圖表
 st.dataframe(city_df, use_container_width=True)
