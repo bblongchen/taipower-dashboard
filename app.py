@@ -85,6 +85,7 @@ st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容�
 
 from prophet import Prophet
 import numpy as np
+import plotly.express as px
 
 def generate_fake_history(curr_load):
     base = datetime.utcnow() - timedelta(days=30)
@@ -120,9 +121,6 @@ try:
 except Exception as e:
     st.error(f"預測模型錯誤：{e}")
 
-from prophet import Prophet
-import plotly.express as px
-
 # 🔧 模擬城市歷史負載資料
 def generate_fake_city_data(city_name, base_value, noise_level=0.05):
     now = pd.Timestamp.now(tz='Asia/Taipei')
@@ -139,12 +137,6 @@ def forecast_city(df):
     future = model.make_future_dataframe(periods=6, freq='H')
     forecast = model.predict(future)
     return forecast
-
-try:
-    from prophet import Prophet
-    st.success("Prophet 模組載入成功 ✅")
-except ImportError as e:
-    st.error(f"Prophet 載入失敗 ❌：{e}")
 
 st.subheader("🔮 六都 AI 電力負載預測")
 
