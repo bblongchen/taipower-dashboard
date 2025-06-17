@@ -56,11 +56,11 @@ def fetch_taipower_data():
 df, total_peak_load, util_rate = fetch_taipower_data()
 
 city_ratios = {
-    "台北市": 0.18,
+    "臺北市": 0.18,
     "新北市": 0.22,
     "桃園市": 0.15,
-    "台中市": 0.20,
-    "台南市": 0.12,
+    "臺中市": 0.20,
+    "臺南市": 0.12,
     "高雄市": 0.13,
 }
 
@@ -80,7 +80,7 @@ for city, ratio in city_ratios.items():
 city_df = pd.DataFrame(city_data)
 
 # 再次明確指定順序（保險做法）
-ordered_cities = ["台北市", "新北市", "桃園市", "台中市", "台南市", "高雄市"]
+ordered_cities = ["臺北市", "新北市", "桃園市", "臺中市", "臺南市", "高雄市"]
 city_df = city_df.set_index("城市").loc[ordered_cities].reset_index()
 
 st.dataframe(city_df, use_container_width=True)
