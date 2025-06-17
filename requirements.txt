@@ -6,4 +6,4 @@ prophet
 numpy
 plotly
 streamlit-autorefresh
-
+pytz
