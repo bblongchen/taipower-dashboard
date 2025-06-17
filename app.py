@@ -93,8 +93,8 @@ st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容�
 # --------- AI 用電預測部分 ----------
 
 def generate_fake_city_data(city_name, base_value=3600, noise_level=0.03):
-    now_utc = pd.Timestamp.utcnow()  # 取得 UTC 現在時間
-    now_taipei = now_utc.tz_localize('UTC').tz_convert(taipei_tz)  # 轉成台北時間
+    now_utc = pd.Timestamp.utcnow().tz_localize('UTC')  # 明確標記 UTC 時區
+    now_taipei = now_utc.tz_convert(taipei_tz)  # 轉成台北時間
 
     ds_list = [now_taipei - pd.Timedelta(minutes=10 * i) for i in reversed(range(48))]
     y_list = [base_value * (1 + np.random.uniform(-noise_level, noise_level)) for _ in range(48)]
