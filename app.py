@@ -33,7 +33,7 @@ st_autorefresh(interval=600000, key="refresh")
 
 @st.cache_data(ttl=600)
 def fetch_taipower_data():
-   url = "https://restless-sunset-f1b0.bblong-chen.workers.dev/"
+    url = "https://restless-sunset-f1b0.bblong-chen.workers.dev/"
     res = requests.get(url)
     res.raise_for_status()
     records = res.json().get("records", [])
@@ -78,11 +78,11 @@ for city, ratio in city_ratios.items():
     city_data["模擬備轉容量(MW)"].append(round(reserve_capacity, 2))
     
 city_df = pd.DataFrame(city_data)
+st.dataframe(city_df, use_container_width=True)
+
 # 明確設定城市欄位順序
 city_df["城市"] = pd.Categorical(city_df["城市"], categories=city_order, ordered=True)
 city_df = city_df.sort_values("城市")
-
-st.dataframe(city_df, use_container_width=True)
 
 # 圖表呈現
 st.subheader("📊 城市電力負載與備轉容量：六都")
