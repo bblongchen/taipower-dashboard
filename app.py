@@ -83,6 +83,10 @@ def generate_fake_history(curr_load):
         data.append({"ds": date.strftime("%Y-%m-%d"), "y": round(load, 2)})
     return pd.DataFrame(data)
 
+if not records or "curr_load" not in records[0]:
+    st.error("⚠️ 無法取得目前負載資料（curr_load），請稍後再試。")
+    st.stop()
+
 # 假設這是目前尖峰負載（從 Cloudflare proxy API 拿到的）
 curr_load = float(records[0].get("curr_load", 3600))
 
