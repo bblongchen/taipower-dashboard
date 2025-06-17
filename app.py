@@ -33,7 +33,7 @@ st_autorefresh(interval=600000, key="refresh")
 
 @st.cache_data(ttl=600)
 def fetch_taipower_data():
-    url = "https://restless-sunset-f1b0.bblong-chen.workers.dev/"
+   url = "https://restless-sunset-f1b0.bblong-chen.workers.dev/"
     res = requests.get(url)
     res.raise_for_status()
     records = res.json().get("records", [])
@@ -47,27 +47,21 @@ def fetch_taipower_data():
 
     df = pd.DataFrame([
         {"key": "目前尖峰負載(MW)", "value": curr_load},
-        {"key": "目前備轉容量(MW)", "value": round(curr_load * util_rate / 100, 2)},
         {"key": "備轉率(%)", "value": util_rate},
         {"key": "更新時間", "value": (datetime.utcnow() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")}
     ])
-    return df, curr_load
+    return df, curr_load, util_rate
 
-df, total_load = fetch_taipower_data()
+# 先抓資料
+df, total_peak_load, util_rate = fetch_taipower_data()
 
-st.subheader("🔌 台電今日電力資訊：全國即時電力數據")
-st.dataframe(df, use_container_width=True)
-
-# 城市模擬
-st.subheader("🔢 城市級電力調度模擬：六都")
-city_order = ["台北市", "新北市", "桃園市", "台中市", "台南市", "高雄市"]
 city_ratios = {
     "台北市": 0.18,
     "新北市": 0.22,
     "桃園市": 0.15,
     "台中市": 0.20,
     "台南市": 0.12,
-    "高雄市": 0.13
+    "高雄市": 0.13,
 }
 
 city_data = {
@@ -76,14 +70,13 @@ city_data = {
     "模擬備轉容量(MW)": []
 }
 
-util_rate = df[df["key"] == "備轉率(%)"]["value"].values[0]
 for city, ratio in city_ratios.items():
     peak_load = total_peak_load * ratio
-    reserve_capacity = peak_load * reserve_rate / 100
+    reserve_capacity = peak_load * util_rate / 100
     city_data["城市"].append(city)
     city_data["尖峰負載(MW)"].append(round(peak_load, 2))
     city_data["模擬備轉容量(MW)"].append(round(reserve_capacity, 2))
-
+    
 city_df = pd.DataFrame(city_data)
 # 明確設定城市欄位順序
 city_df["城市"] = pd.Categorical(city_df["城市"], categories=city_order, ordered=True)
