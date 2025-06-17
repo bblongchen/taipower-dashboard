@@ -87,7 +87,7 @@ city_df = pd.DataFrame(city_data)
 st.dataframe(city_df, use_container_width=True)
 
 # 圖表呈現
-st.subheader("📊 城市電力負載與備轉容量")
+st.subheader("📊 城市電力負載與備轉容量：六都")
 st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容量(MW)"]])
 
 # --------- AI 用電預測部分 ----------
