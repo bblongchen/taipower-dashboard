@@ -120,11 +120,11 @@ st.subheader("🔮 六都 AI 用電預測")
 selected_city = st.selectbox("請選擇城市", list(city_ratios.keys()))
 
 base_values = {
-    "台北市": 3700,
+    "臺北市": 3700,
     "新北市": 3800,
     "桃園市": 3600,
-    "台中市": 3900,
-    "台南市": 3500,
+    "臺中市": 3900,
+    "臺南市": 3500,
     "高雄市": 4100,
 }
 
@@ -137,5 +137,5 @@ fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', nam
 fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_upper'], mode='lines', name='預測上限', line=dict(dash='dot')))
 fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_lower'], mode='lines', name='預測下限', line=dict(dash='dot')))
 
-st.markdown(f"**{selected_city} 用電預測圖表**") # 時間為台北時間
+st.markdown(f"**{selected_city} 用電預測圖表**") # 時間為臺北時間
 st.plotly_chart(fig, use_container_width=True)
