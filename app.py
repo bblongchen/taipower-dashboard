@@ -83,20 +83,15 @@ st.dataframe(city_df, use_container_width=True)
 st.subheader("📊 城市電力負載與備轉容量")
 st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容量(MW)"]])
 
-from prophet import Prophet
-import numpy as np
-
 def generate_fake_city_data(city_name, base_value=3600, noise_level=0.05):
+    import pandas as pd
+    import numpy as np
     now = pd.Timestamp.now(tz='Asia/Taipei')
-    ds_list = [now - pd.Timedelta(minutes=10 * i) for i in reversed(range(30))]  # 共30筆，間隔10分鐘
+    ds_list = [now - pd.Timedelta(minutes=10 * i) for i in reversed(range(30))]
     y_list = [base_value * (1 + np.random.uniform(-noise_level, noise_level)) for _ in range(30)]
-    
     df = pd.DataFrame({'ds': ds_list, 'y': y_list})
-    
-    # 確保格式正確
     df['ds'] = pd.to_datetime(df['ds'])
     df['y'] = pd.to_numeric(df['y'])
-    
     return df
 
 # 假設這是目前尖峰負載（從 Cloudflare proxy API 拿到的）
