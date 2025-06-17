@@ -124,10 +124,11 @@ except Exception as e:
 # 🔧 模擬城市歷史負載資料
 def generate_fake_city_data(city_name, base_value, noise_level=0.05):
     now = pd.Timestamp.now(tz='Asia/Taipei')
-    df = pd.DataFrame({
-        'ds': [now - pd.Timedelta(minutes=10*i) for i in reversed(range(30))],
-        'y': [base_value * (1 + np.random.uniform(-noise_level, noise_level)) for _ in range(30)]
-    })
+    ds_list = [now - pd.Timedelta(minutes=10 * i) for i in reversed(range(30))]
+    y_list = [base_value * (1 + np.random.uniform(-noise_level, noise_level)) for _ in range(30)]
+    df = pd.DataFrame({'ds': ds_list, 'y': y_list})
+    df['ds'] = pd.to_datetime(df['ds'])  # 確保時間格式
+    df['y'] = pd.to_numeric(df['y'])     # 確保數值格式
     return df
 
 # 🤖 預測未來負載
