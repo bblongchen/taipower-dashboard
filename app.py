@@ -83,12 +83,15 @@ def generate_fake_history(curr_load):
         data.append({"ds": date.strftime("%Y-%m-%d"), "y": round(load, 2)})
     return pd.DataFrame(data)
 
-if not records or "curr_load" not in records[0]:
-    st.error("⚠️ 無法取得目前負載資料（curr_load），請稍後再試。")
-    st.stop()
-
 # 假設這是目前尖峰負載（從 Cloudflare proxy API 拿到的）
-curr_load = float(records[0].get("curr_load", 3600))
+try:
+    records = fetch_data()
+    if not records or "curr_load" not in records[0]:
+        raise ValueError("curr_load 欄位缺失")
+    curr_load = float(records[0].get("curr_load", 3600))
+except Exception as e:
+    st.error(f"⚠️ 無法載入即時負載資料：{e}")
+    st.stop()
 
 st.subheader("📈 AI 模擬尖峰負載預測")
 
