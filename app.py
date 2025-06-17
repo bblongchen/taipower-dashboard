@@ -65,6 +65,29 @@ st.subheader("🔌 台電今日電力資訊：全國即時電力數據")
 if not df.empty:
     st.dataframe(df, use_container_width=True)
 
+def generate_fake_history(curr_value, points=72):  # 12小時，每10分鐘1筆
+    now = pd.Timestamp.now().floor('10min')
+    times = [now - timedelta(minutes=10 * i) for i in reversed(range(points))]
+    values = [curr_value * (1 + np.random.uniform(-0.03, 0.03)) for _ in times]
+    return pd.DataFrame({"時間": times, "負載(MW)": values})
+
+# 確認 df 不為空，然後畫圖
+if not df.empty:
+    st.dataframe(df, use_container_width=True)
+
+    # 產生歷史負載數據 (模擬)
+    hist_df = generate_fake_history(total_load)
+
+    # 用 Plotly 畫折線圖
+    fig = px.line(hist_df, x="時間", y="負載(MW)", title="即時電力負載歷史趨勢", markers=True)
+    fig.update_layout(
+        xaxis_title="時間",
+        yaxis_title="負載 (MW)",
+        xaxis_tickformat="%H:%M",
+        margin=dict(l=40, r=40, t=40, b=40)
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
 # ======================
 # 🏙️ 城市負載模擬
 # ======================
