@@ -137,5 +137,5 @@ fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', nam
 fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_upper'], mode='lines', name='預測上限', line=dict(dash='dot')))
 fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_lower'], mode='lines', name='預測下限', line=dict(dash='dot')))
 
-st.markdown(f"**{selected_city} 用電預測圖表（時間為台北時區）**")
+st.markdown(f"**{selected_city} 用電預測圖表**") # 時間為台北時間
 st.plotly_chart(fig, use_container_width=True)
