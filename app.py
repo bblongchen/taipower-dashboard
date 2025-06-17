@@ -70,3 +70,31 @@ st.dataframe(city_df, use_container_width=True)
 # 圖表呈現
 st.subheader("📊 城市電力負載與備轉容量")
 st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容量(MW)"]])
+
+from prophet import Prophet
+import pandas as pd
+import numpy as np
+
+# 建立模擬歷史資料（實際部署建議換成真實來源）
+def generate_fake_history(curr_load):
+    base = datetime.utcnow() - timedelta(days=30)
+    data = []
+    for i in range(30):
+        day = base + timedelta(days=i)
+        load = curr_load + np.random.normal(0, 150)
+        data.append({"ds": day.strftime("%Y-%m-%d"), "y": load})
+    return pd.DataFrame(data)
+
+st.subheader("📈 AI 模擬預測未來尖峰負載")
+
+try:
+    hist_df = generate_fake_history(curr_load)
+    m = Prophet()
+    m.fit(hist_df)
+    future = m.make_future_dataframe(periods=7)  # 預測 7 天
+    forecast = m.predict(future)
+
+    st.line_chart(forecast.set_index("ds")[["yhat", "yhat_upper", "yhat_lower"]].tail(14))
+
+except Exception as e:
+    st.error(f"預測模型錯誤: {e}")
