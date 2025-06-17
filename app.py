@@ -5,7 +5,7 @@ from datetime import datetime
 from streamlit_autorefresh import st_autorefresh
 
 def fetch_taipower_data():
-    url = "https://www.taipower.com.tw/d006/loadGraph/loadGraph/data/loadpara.json"
+    url = "https://restless-sunset-f1b0.bblong-chen.workers.dev/"
     res = requests.get(url)
     res.raise_for_status()
     data = res.json()
