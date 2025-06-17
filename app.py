@@ -109,7 +109,7 @@ except Exception as e:
 st.subheader("📈 AI 模擬尖峰負載預測")
 
 try:
-    hist_df = generate_fake_history(curr_load)
+    hist_df = generate_fake_city_data(curr_load)
     m = Prophet()
     m.fit(hist_df)
     future = m.make_future_dataframe(periods=7)
