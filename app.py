@@ -83,10 +83,9 @@ st.dataframe(city_df, use_container_width=True)
 st.subheader("📊 城市電力負載與備轉容量")
 st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容量(MW)"]])
 
-import pandas as pd
-import numpy as np
-
 def generate_fake_city_data(city_name, base_value=3600, noise_level=0.05):
+    import pandas as pd
+    import numpy as np
     now = pd.Timestamp.now(tz='Asia/Taipei')
     ds_list = [now - pd.Timedelta(minutes=10 * i) for i in reversed(range(30))]
     y_list = [base_value * (1 + np.random.uniform(-noise_level, noise_level)) for _ in range(30)]
