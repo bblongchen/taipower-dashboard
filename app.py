@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="城市級電力調度模擬", layout="wide")
 
-st.title("🏙 城市級電力調度模擬")
+st.title("🏙️ 城市級電力調度模擬")
 
 # 自動刷新每 10 分鐘 (600000 ms)
 st_autorefresh(interval=600000, key="refresh")
