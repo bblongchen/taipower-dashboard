@@ -65,16 +65,6 @@ st.subheader("🔌 台電今日電力資訊：全國即時電力數據")
 if not df.empty:
     st.dataframe(df, use_container_width=True)
 
-    # 用 Plotly 畫折線圖
-    fig = px.line(hist_df, x="時間", y="負載(MW)", title="即時電力負載歷史趨勢", markers=True)
-    fig.update_layout(
-        xaxis_title="時間",
-        yaxis_title="負載 (MW)",
-        xaxis_tickformat="%H:%M",
-        margin=dict(l=40, r=40, t=40, b=40)
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
 # ======================
 # 🏙️ 城市負載模擬
 # ======================
