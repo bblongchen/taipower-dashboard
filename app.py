@@ -1,8 +1,8 @@
 
 import streamlit as st
+from prophet import Prophet
 import pandas as pd
 import requests
-from prophet import Prophet
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 
