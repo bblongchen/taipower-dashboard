@@ -4,6 +4,7 @@ import pandas as pd
 import requests
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
+from prophet import Prophet
 
 @st.cache_data(ttl=600)  # 每10分鐘快取更新
 def fetch_data():
