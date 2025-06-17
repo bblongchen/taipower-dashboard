@@ -62,27 +62,21 @@ df, total_peak_load, util_rate = fetch_taipower_data()
 # 🔌 即時電力資訊區塊
 # ======================
 # 產生模擬的歷史電力負載數據（12小時，每10分鐘一筆）
-def generate_fake_history(curr_value, points=72):
+ef generate_fake_history(curr_value, points=72):
     now = pd.Timestamp.now().floor('10min')
     times = [now - timedelta(minutes=10 * i) for i in reversed(range(points))]
     values = [curr_value * (1 + np.random.uniform(-0.03, 0.03)) for _ in times]
-    return pd.DataFrame({"時間": times, "負載(MW)": values})
+    df = pd.DataFrame({"時間": times, "負載(MW)": values})
+    return df
 
-# 假設這是你從API取得的即時負載（確保是float）
-total_load = 35000.0  
-
-st.subheader("🔌 台電今日電力資訊：全國即時電力數據")
+total_load = 35000.0  # 你從API取的即時負載
 
 if total_load:
     hist_df = generate_fake_history(total_load)
 
+    st.write(hist_df.head())  # 確認資料內容
+
     fig = px.line(hist_df, x="時間", y="負載(MW)", title="即時電力負載歷史趨勢", markers=True)
-    fig.update_layout(
-        xaxis_title="時間",
-        yaxis_title="負載 (MW)",
-        xaxis_tickformat="%m-%d %H:%M",
-        margin=dict(l=40, r=40, t=40, b=40)
-    )
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.warning("無法取得即時負載數據")
