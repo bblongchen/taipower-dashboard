@@ -92,6 +92,8 @@ try:
 except Exception as e:
     st.error(f"⚠️ 無法載入即時負載資料：{e}")
     st.stop()
+    st.subheader("🔎 即時電力資料記錄")
+    st.json(records)
 
 st.subheader("📈 AI 模擬尖峰負載預測")
 
