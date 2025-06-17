@@ -2,9 +2,9 @@
 import streamlit as st
 import pandas as pd
 import requests
+from prophet import Prophet
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
-from prophet import Prophet
 
 @st.cache_data(ttl=600)  # 每10分鐘快取更新
 def fetch_data():
@@ -84,7 +84,6 @@ st.dataframe(city_df, use_container_width=True)
 st.subheader("📊 城市電力負載與備轉容量")
 st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容量(MW)"]])
 
-from prophet import Prophet
 import pandas as pd
 import numpy as np
 
