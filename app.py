@@ -2,7 +2,7 @@
 import streamlit as st
 import pandas as pd
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 
 st.set_page_config(page_title="城市級電力調度模擬", layout="wide")
@@ -30,7 +30,7 @@ def fetch_taipower_data():
         {"key": "目前尖峰負載(MW)", "value": curr_load},
         {"key": "目前備轉容量(MW)", "value": round(curr_load * util_rate / 100, 2)},
         {"key": "備轉率(%)", "value": util_rate},
-        {"key": "更新時間", "value": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+        {"key": "更新時間", "value": (datetime.utcnow() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")}
     ])
     return df, curr_load
 
