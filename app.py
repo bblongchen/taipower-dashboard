@@ -2,8 +2,10 @@
 import streamlit as st
 import pandas as pd
 import requests
+import numpy as np
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
+from prophet import Prophet
 
 st.set_page_config(page_title="城市級電力調度模擬", layout="wide")
 
@@ -70,10 +72,6 @@ st.dataframe(city_df, use_container_width=True)
 # 圖表呈現
 st.subheader("📊 城市電力負載與備轉容量")
 st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容量(MW)"]])
-
-from prophet import Prophet
-import pandas as pd
-import numpy as np
 
 # 建立模擬歷史資料（實際部署建議換成真實來源）
 def generate_fake_history(curr_load):
