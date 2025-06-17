@@ -4,57 +4,61 @@ import requests
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 from prophet import Prophet
+import pytz
 import numpy as np
 import plotly.graph_objects as go
 
-# ======================
-# 📌 自動刷新與基本設定
-# ======================
-st.set_page_config(page_title="城市級電力調度模擬", layout="wide")
-st_autorefresh(interval=600000, key="refresh")  # 每10分鐘自動刷新
-st.title("🏙️ 城市級電力調度模擬")
+# 設定台北時區
+taipei_tz = pytz.timezone('Asia/Taipei')
 
-# ======================
-# 📡 抓取台電即時資料
-# ======================
 @st.cache_data(ttl=600)  # 每10分鐘快取更新
-def fetch_taipower_data():
+def fetch_data():
     url = "https://restless-sunset-f1b0.bblong-chen.workers.dev/"
     try:
-        res = requests.get(url, timeout=10)
-        res.raise_for_status()
-        records = res.json().get("records", [])
-        if not records or "curr_load" not in records[0]:
-            raise ValueError("資料格式錯誤，無法解析 curr_load")
-        data = records[0]
-        curr_load = float(data["curr_load"])
-        util_rate = float(data["curr_util_rate"])
-
-        df = pd.DataFrame([
-            {"key": "目前尖峰負載(MW)", "value": curr_load},
-            {"key": "目前備轉容量(MW)", "value": round(curr_load * util_rate / 100, 2)},
-            {"key": "備轉率(%)", "value": util_rate},
-            {"key": "更新時間", "value": (datetime.utcnow() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")}
-        ])
-        return df, curr_load, util_rate
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        return data.get("records", [])
     except Exception as e:
         st.error(f"❌ 無法載入即時電力資料：{e}")
-        return pd.DataFrame(), 0, 0
+        return []
 
-df, total_load, util_rate = fetch_taipower_data()
+st.set_page_config(page_title="城市級電力調度模擬", layout="wide")
 
-# ======================
-# 🔌 即時電力資訊區塊
-# ======================
+st.title("🏙️ 城市級電力調度模擬")
+
+# 自動刷新每 10 分鐘 (600000 ms)
+st_autorefresh(interval=600000, key="refresh")
+
+@st.cache_data(ttl=600)
+def fetch_taipower_data():
+    url = "https://restless-sunset-f1b0.bblong-chen.workers.dev/"
+    res = requests.get(url)
+    res.raise_for_status()
+    records = res.json().get("records", [])
+
+    if not records or "curr_load" not in records[0]:
+        raise ValueError("無法從資料中解析 curr_load 欄位")
+
+    data = records[0]
+    curr_load = float(data["curr_load"])
+    util_rate = float(data["curr_util_rate"])
+
+    df = pd.DataFrame([
+        {"key": "目前尖峰負載(MW)", "value": curr_load},
+        {"key": "目前備轉容量(MW)", "value": round(curr_load * util_rate / 100, 2)},
+        {"key": "備轉率(%)", "value": util_rate},
+        {"key": "更新時間", "value": (datetime.utcnow() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")}
+    ])
+    return df, curr_load
+
+df, total_load = fetch_taipower_data()
+
 st.subheader("🔌 台電今日電力資訊：全國即時電力數據")
-if not df.empty:
-    st.dataframe(df, use_container_width=True)
+st.dataframe(df, use_container_width=True)
 
-# ======================
-# 🏙️ 城市負載模擬
-# ======================
+# 城市模擬
 st.subheader("🔢 城市級電力調度模擬：六都")
-
 city_ratios = {
     "台北市": 0.18,
     "新北市": 0.22,
@@ -70,6 +74,7 @@ city_data = {
     "模擬備轉容量(MW)": []
 }
 
+util_rate = df[df["key"] == "備轉率(%)"]["value"].values[0]
 for city, ratio in city_ratios.items():
     load = round(total_load * ratio, 2)
     reserve = round(load * util_rate / 100, 2)
@@ -80,33 +85,45 @@ for city, ratio in city_ratios.items():
 city_df = pd.DataFrame(city_data)
 st.dataframe(city_df, use_container_width=True)
 
-# 條狀圖圖表
+# 圖表呈現
 st.subheader("📊 城市電力負載與備轉容量")
 st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容量(MW)"]])
 
-# ======================
-# 🔮 AI 預測模組
-# ======================
+# --------- AI 用電預測部分 ----------
+
 def generate_fake_city_data(city_name, base_value=3600, noise_level=0.03):
-    now = pd.Timestamp.now().tz_localize(None)
-    ds_list = [now - pd.Timedelta(minutes=10 * i) for i in reversed(range(48))]
+    now_utc = pd.Timestamp.utcnow()  # 取得 UTC 現在時間
+    now_taipei = now_utc.tz_localize('UTC').tz_convert(taipei_tz)  # 轉成台北時間
+
+    ds_list = [now_taipei - pd.Timedelta(minutes=10 * i) for i in reversed(range(48))]
     y_list = [base_value * (1 + np.random.uniform(-noise_level, noise_level)) for _ in range(48)]
-    return pd.DataFrame({'ds': ds_list, 'y': y_list})
+    df = pd.DataFrame({'ds': ds_list, 'y': y_list})
+    return df
 
 def forecast_city(df):
-    df['ds'] = pd.to_datetime(df['ds']).dt.tz_localize(None)
+    df['ds'] = pd.to_datetime(df['ds'])
+    if df['ds'].dt.tz is None:
+        df['ds'] = df['ds'].dt.tz_localize(taipei_tz)
+    else:
+        df['ds'] = df['ds'].dt.tz_convert(taipei_tz)
+
     model = Prophet()
+    df['ds'] = df['ds'].dt.tz_localize(None)  # Prophet 不支援帶時區時間
+
     model.fit(df)
+
     future = model.make_future_dataframe(periods=6, freq='10min')
+    future['ds'] = future['ds'].dt.tz_localize(taipei_tz)
+
     forecast = model.predict(future)
+    forecast['ds'] = forecast['ds'].dt.tz_localize(taipei_tz)
+
     return forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]
 
-# ======================
-# 🔮 六都預測展示
-# ======================
 st.subheader("🔮 六都 AI 用電預測")
+selected_city = st.selectbox("請選擇城市", list(city_ratios.keys()))
 
-cities = {
+base_values = {
     "台北市": 3700,
     "新北市": 3800,
     "桃園市": 3600,
@@ -115,34 +132,14 @@ cities = {
     "高雄市": 4100,
 }
 
-def generate_fake_city_data(city_name, base_value=3600, noise_level=0.03):
-    now = pd.Timestamp.now().tz_localize(None)
-    ds_list = [now - pd.Timedelta(minutes=10 * i) for i in reversed(range(48))]
-    y_list = [base_value * (1 + np.random.uniform(-noise_level, noise_level)) for _ in range(48)]
-    df = pd.DataFrame({'ds': ds_list, 'y': y_list})
-    return df
+df_city = generate_fake_city_data(selected_city, base_values[selected_city])
+forecast = forecast_city(df_city)
 
-def forecast_city(df):
-    df['ds'] = pd.to_datetime(df['ds']).dt.tz_localize(None)
-    model = Prophet()
-    model.fit(df)
-    future = model.make_future_dataframe(periods=6, freq='10min')
-    forecast = model.predict(future)
-    return forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=df_city['ds'], y=df_city['y'], mode='lines+markers', name='歷史用電'))
+fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='預測用電'))
+fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_upper'], mode='lines', name='預測上限', line=dict(dash='dot')))
+fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_lower'], mode='lines', name='預測下限', line=dict(dash='dot')))
 
-selected_city = st.selectbox("請選擇城市", list(cities.keys()))
-
-if selected_city:
-    base = cities[selected_city]
-    df_city = generate_fake_city_data(selected_city, base)
-    forecast = forecast_city(df_city)
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=df_city['ds'], y=df_city['y'], mode='lines+markers', name='歷史用電'))
-    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='預測用電'))
-    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_upper'], mode='lines', name='預測上限', line=dict(dash='dot')))
-    fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_lower'], mode='lines', name='預測下限', line=dict(dash='dot')))
-
-    st.markdown(f"### {selected_city} 用電預測圖表")
-    fig.update_layout(title='')
-    st.plotly_chart(fig, use_container_width=True)
+st.markdown(f"**{selected_city} 用電預測圖表（時間為台北時區）**")
+st.plotly_chart(fig, use_container_width=True)
