@@ -126,5 +126,5 @@ for city, base in cities.items():
     fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_lower'], mode='lines', name='預測下限', line=dict(dash='dot')))
     fig.update_layout(title=f"{city} 用電預測圖表", xaxis_title="時間", yaxis_title="MW")
 
-    st.markdown(f"**{city} 用電預測圖表**")
+    st.markdown("")
     st.plotly_chart(fig, use_container_width=True)
