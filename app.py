@@ -8,12 +8,19 @@ def fetch_taipower_data():
     url = "https://restless-sunset-f1b0.bblong-chen.workers.dev/"
     res = requests.get(url)
     res.raise_for_status()
-    data = res.json()
+    records = res.json().get("records", [])
+
+    if not records or "curr_load" not in records[0]:
+        raise ValueError("無法從資料中解析 curr_load 欄位")
+
+    data = records[0]
+    curr_load = float(data["curr_load"])
+    util_rate = float(data["curr_util_rate"])
+
     df = pd.DataFrame([
-        {"key": "目前尖峰負載(MW)", "value": data["peakLoad"]},
-        {"key": "目前備轉容量(MW)", "value": data["supply"]},
-        {"key": "備轉率(%)", "value": data["percent"]},
-        {"key": "尖峰時間", "value": data["peak"]},
+        {"key": "目前尖峰負載(MW)", "value": curr_load},
+        {"key": "目前備轉容量(MW)", "value": round(curr_load * util_rate / 100, 2)},
+        {"key": "備轉率(%)", "value": util_rate},
         {"key": "更新時間", "value": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
     ])
     return df
