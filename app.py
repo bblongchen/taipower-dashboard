@@ -34,27 +34,41 @@ st_autorefresh(interval=600000, key="refresh")
 @st.cache_data(ttl=600)
 def fetch_taipower_data():
     url = "https://restless-sunset-f1b0.bblong-chen.workers.dev/"
-    res = requests.get(url)
-    res.raise_for_status()
-    records = res.json().get("records", [])
+    try:
+        res = requests.get(url, timeout=10)
+        res.raise_for_status()
+        records = res.json().get("records", [])
+        if not records or "curr_load" not in records[0]:
+            raise ValueError("資料格式錯誤，無法解析 curr_load")
+        data = records[0]
+        curr_load = float(data["curr_load"])
+        util_rate = float(data["curr_util_rate"])
 
-    if not records or "curr_load" not in records[0]:
-        raise ValueError("無法從資料中解析 curr_load 欄位")
-
-    data = records[0]
-    curr_load = float(data["curr_load"])
-    util_rate = float(data["curr_util_rate"])
-
-    df = pd.DataFrame([
-        {"key": "目前尖峰負載(MW)", "value": curr_load},
-        {"key": "備轉率(%)", "value": util_rate},
-        {"key": "更新時間", "value": (datetime.utcnow() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")}
-    ])
-    return df, curr_load, util_rate
+        df = pd.DataFrame([
+            {"key": "目前尖峰負載(MW)", "value": curr_load},
+            {"key": "目前備轉容量(MW)", "value": round(curr_load * util_rate / 100, 2)},
+            {"key": "備轉率(%)", "value": util_rate},
+            {"key": "更新時間", "value": (datetime.utcnow() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S")}
+        ])
+        return df, curr_load, util_rate
+    except Exception as e:
+        st.error(f"❌ 無法載入即時電力資料：{e}")
+        return pd.DataFrame(), 0, 0
 
 # 先抓資料
 df, total_peak_load, util_rate = fetch_taipower_data()
 
+# ======================
+# 🔌 即時電力資訊區塊
+# ======================
+st.subheader("🔌 台電今日電力資訊：全國即時電力數據")
+if not df.empty:
+    st.dataframe(df, use_container_width=True)
+
+# ======================
+# 🏙️ 城市負載模擬
+# ======================
+st.subheader("🔢 城市級電力調度模擬：六都")
 city_ratios = {
     "臺北市": 0.18,
     "新北市": 0.22,
