@@ -120,8 +120,46 @@ try:
 except Exception as e:
     st.error(f"預測模型錯誤：{e}")
 
+from prophet import Prophet
+import plotly.express as px
+
+# 🔧 模擬城市歷史負載資料
+def generate_fake_city_data(city_name, base_value, noise_level=0.05):
+    now = pd.Timestamp.now(tz='Asia/Taipei')
+    df = pd.DataFrame({
+        'ds': [now - pd.Timedelta(minutes=10*i) for i in reversed(range(30))],
+        'y': [base_value * (1 + np.random.uniform(-noise_level, noise_level)) for _ in range(30)]
+    })
+    return df
+
+# 🤖 預測未來負載
+def forecast_city(df):
+    model = Prophet()
+    model.fit(df)
+    future = model.make_future_dataframe(periods=6, freq='H')
+    forecast = model.predict(future)
+    return forecast
+
 try:
     from prophet import Prophet
     st.success("Prophet 模組載入成功 ✅")
 except ImportError as e:
     st.error(f"Prophet 載入失敗 ❌：{e}")
+
+st.subheader("🔮 六都 AI 電力負載預測")
+
+city_name = st.selectbox("請選擇城市", ["台北", "新北", "桃園", "台中", "台南", "高雄"])
+city_base_load = {
+    "台北": 580,
+    "新北": 740,
+    "桃園": 620,
+    "台中": 810,
+    "台南": 430,
+    "高雄": 770,
+}
+
+df_city = generate_fake_city_data(city_name, city_base_load[city_name])
+forecast = forecast_city(df_city)
+
+fig = px.line(forecast, x='ds', y='yhat', title=f"{city_name} 未來 6 小時 AI 預測電力負載", labels={'ds': '時間', 'yhat': '預測負載（MW）'})
+st.plotly_chart(fig, use_container_width=True)
