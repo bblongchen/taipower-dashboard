@@ -60,6 +60,7 @@ st.dataframe(df, use_container_width=True)
 
 # 城市模擬
 st.subheader("🔢 城市級電力調度模擬：六都")
+city_order = ["台北市", "新北市", "桃園市", "台中市", "台南市", "高雄市"]
 city_ratios = {
     "台北市": 0.18,
     "新北市": 0.22,
@@ -76,14 +77,19 @@ city_data = {
 }
 
 util_rate = df[df["key"] == "備轉率(%)"]["value"].values[0]
-for city, ratio in city_ratios.items():
-    load = round(total_load * ratio, 2)
-    reserve = round(load * util_rate / 100, 2)
+for city in city_order:
+    ratio = city_ratios[city]
+    peak_load = total_peak_load * ratio
+    reserve_capacity = peak_load * reserve_rate / 100
     city_data["城市"].append(city)
-    city_data["尖峰負載(MW)"].append(load)
-    city_data["模擬備轉容量(MW)"].append(reserve)
+    city_data["尖峰負載(MW)"].append(round(peak_load, 2))
+    city_data["模擬備轉容量(MW)"].append(round(reserve_capacity, 2))
 
 city_df = pd.DataFrame(city_data)
+# 明確設定城市欄位順序
+city_df["城市"] = pd.Categorical(city_df["城市"], categories=city_order, ordered=True)
+city_df = city_df.sort_values("城市")
+
 st.dataframe(city_df, use_container_width=True)
 
 # 圖表呈現
