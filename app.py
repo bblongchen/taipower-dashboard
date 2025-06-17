@@ -85,6 +85,7 @@ st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容�
 
 from prophet import Prophet
 import numpy as np
+import plotly.express as px
 
 def generate_fake_city_data(city_name, base_value=3600, noise_level=0.05):
     now = pd.Timestamp.now(tz='Asia/Taipei')
@@ -98,14 +99,6 @@ def generate_fake_city_data(city_name, base_value=3600, noise_level=0.05):
     df['y'] = pd.to_numeric(df['y'])
     
     return df
-
-try:
-    if df_city.empty or df_city.shape[0] < 2:
-        st.error("⚠ 資料筆數不足，無法進行 AI 預測")
-    else:
-        forecast = forecast_city(df_city)
-except Exception as e:
-    st.error(f"⚠ AI預測發生錯誤：{e}")
 
 # 假設這是目前尖峰負載（從 Cloudflare proxy API 拿到的）
 try:
