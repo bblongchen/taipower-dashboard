@@ -83,18 +83,30 @@ st.dataframe(city_df, use_container_width=True)
 st.subheader("📊 城市電力負載與備轉容量")
 st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容量(MW)"]])
 
+try:
+    if df_city.empty or df_city.shape[0] < 2:
+        st.error("⚠ 資料筆數不足，無法進行 AI 預測")
+    else:
+        forecast = forecast_city(df_city)
+except Exception as e:
+    st.error(f"⚠ AI預測發生錯誤：{e}")
+
 from prophet import Prophet
 import numpy as np
 import plotly.express as px
 
-def generate_fake_history(curr_load):
-    base = datetime.utcnow() - timedelta(days=30)
-    data = []
-    for i in range(30):
-        date = base + timedelta(days=i)
-        load = curr_load + np.random.normal(0, 100)
-        data.append({"ds": date.strftime("%Y-%m-%d"), "y": round(load, 2)})
-    return pd.DataFrame(data)
+def generate_fake_city_data(city_name, base_value=3600, noise_level=0.05):
+    now = pd.Timestamp.now(tz='Asia/Taipei')
+    ds_list = [now - pd.Timedelta(minutes=10 * i) for i in reversed(range(30))]  # 共30筆，間隔10分鐘
+    y_list = [base_value * (1 + np.random.uniform(-noise_level, noise_level)) for _ in range(30)]
+    
+    df = pd.DataFrame({'ds': ds_list, 'y': y_list})
+    
+    # 確保格式正確
+    df['ds'] = pd.to_datetime(df['ds'])
+    df['y'] = pd.to_numeric(df['y'])
+    
+    return df
 
 # 假設這是目前尖峰負載（從 Cloudflare proxy API 拿到的）
 try:
