@@ -62,7 +62,7 @@ df, total_peak_load, util_rate = fetch_taipower_data()
 # 🔌 即時電力資訊區塊
 # ======================
 st.subheader("🔌 台電今日電力資訊：全國即時電力數據")
-# 產生模擬歷史資料函數
+
 def generate_fake_history(curr_value, points=72):
     now = pd.Timestamp.utcnow() + timedelta(hours=8)  # 台北時間
     times = [now - timedelta(minutes=10 * i) for i in reversed(range(points))]
@@ -70,19 +70,15 @@ def generate_fake_history(curr_value, points=72):
     df = pd.DataFrame({"時間": times, "負載(MW)": values})
     return df
 
-# 產生歷史負載資料
+# 假設 total_peak_load 是即時負載值
 if total_peak_load > 0:
     hist_df = generate_fake_history(total_peak_load)
-
-    # 畫出負載歷史曲線圖
-    fig = px.line(hist_df, x="時間", y="負載(MW)", 
-                  title="即時電力負載歷史趨勢（模擬資料）", 
-                  markers=True)
+    st.write(hist_df.head())  # 你可以暫時打開看資料格式
+    fig = px.line(hist_df, x="時間", y="負載(MW)", title="即時電力負載歷史趨勢（模擬資料）", markers=True)
     fig.update_layout(xaxis_title="時間（台北時間）", yaxis_title="負載 (MW)")
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.warning("無法取得即時負載數據，無法顯示歷史趨勢圖")
-    st.dataframe(df, use_container_width=True)
 
 # ======================
 # 🏙️ 城市負載模擬
