@@ -71,9 +71,6 @@ def generate_fake_history(curr_value, points=72):  # 12小時，每10分鐘1筆
     values = [curr_value * (1 + np.random.uniform(-0.03, 0.03)) for _ in times]
     return pd.DataFrame({"時間": times, "負載(MW)": values})
 
-    # 產生歷史負載數據 (模擬)
-    hist_df = generate_fake_history(total_load)
-
     # 用 Plotly 畫折線圖
     fig = px.line(hist_df, x="時間", y="負載(MW)", title="即時電力負載歷史趨勢", markers=True)
     fig.update_layout(
