@@ -77,8 +77,7 @@ city_data = {
 }
 
 util_rate = df[df["key"] == "備轉率(%)"]["value"].values[0]
-for city in city_order:
-    ratio = city_ratios[city]
+for city, ratio in city_ratios.items():
     peak_load = total_peak_load * ratio
     reserve_capacity = peak_load * reserve_rate / 100
     city_data["城市"].append(city)
