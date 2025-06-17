@@ -78,6 +78,11 @@ for city, ratio in city_ratios.items():
     city_data["模擬備轉容量(MW)"].append(round(reserve_capacity, 2))
     
 city_df = pd.DataFrame(city_data)
+
+# 再次明確指定順序（保險做法）
+ordered_cities = ["台北市", "新北市", "桃園市", "台中市", "台南市", "高雄市"]
+city_df = city_df.set_index("城市").loc[ordered_cities].reset_index()
+
 st.dataframe(city_df, use_container_width=True)
 
 # 圖表呈現
