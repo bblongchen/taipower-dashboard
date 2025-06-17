@@ -99,13 +99,7 @@ def generate_fake_history(curr_load):
 try:
     records = fetch_data()
     if not records or "curr_load" not in records[0]:
-        raise ValueError("curr_load 欄位缺失")
-
-    records = fetch_data()
-    if not records or "curr_load" not in records[0]:
-    st.error("⚠️ 無法取得目前負載資料（curr_load），請稍後再試。")
-    st.stop()
-    
+        raise ValueError("curr_load 欄位缺失")   
     curr_load = float(records[0].get("curr_load", 3600))
 except Exception as e:
     st.error(f"⚠️ 無法載入即時負載資料：{e}")
