@@ -1,7 +1,9 @@
 
-pytz
 streamlit
-pandas
 requests
+pandas
 prophet
+numpy
+plotly
 streamlit-autorefresh
+
