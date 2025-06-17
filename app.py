@@ -102,23 +102,18 @@ def generate_fake_city_data(city_name, base_value=3600, noise_level=0.03):
     return df
 
 def forecast_city(df):
-    df['ds'] = pd.to_datetime(df['ds'])
-    if df['ds'].dt.tz is None:
-        df['ds'] = df['ds'].dt.tz_localize(taipei_tz)
-    else:
-        df['ds'] = df['ds'].dt.tz_convert(taipei_tz)
-
+    # 移除時區
+    df['ds'] = pd.to_datetime(df['ds']).dt.tz_localize(None)
+    
     model = Prophet()
-    df['ds'] = df['ds'].dt.tz_localize(None)  # Prophet 不支援帶時區時間
-
     model.fit(df)
-
+    
     future = model.make_future_dataframe(periods=6, freq='10min')
-    future['ds'] = future['ds'].dt.tz_localize(taipei_tz)
-
+    # 移除時區
+    future['ds'] = future['ds'].dt.tz_localize(None)
+    
     forecast = model.predict(future)
-    forecast['ds'] = forecast['ds'].dt.tz_localize(taipei_tz)
-
+    
     return forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]
 
 st.subheader("🔮 六都 AI 用電預測")
