@@ -115,8 +115,26 @@ cities = {
     "高雄市": 4100,
 }
 
-for city, base in cities.items():
-    df_city = generate_fake_city_data(city, base)
+def generate_fake_city_data(city_name, base_value=3600, noise_level=0.03):
+    now = pd.Timestamp.now().tz_localize(None)
+    ds_list = [now - pd.Timedelta(minutes=10 * i) for i in reversed(range(48))]
+    y_list = [base_value * (1 + np.random.uniform(-noise_level, noise_level)) for _ in range(48)]
+    df = pd.DataFrame({'ds': ds_list, 'y': y_list})
+    return df
+
+def forecast_city(df):
+    df['ds'] = pd.to_datetime(df['ds']).dt.tz_localize(None)
+    model = Prophet()
+    model.fit(df)
+    future = model.make_future_dataframe(periods=6, freq='10min')
+    forecast = model.predict(future)
+    return forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]
+
+selected_city = st.selectbox("請選擇城市", list(cities.keys()))
+
+if selected_city:
+    base = cities[selected_city]
+    df_city = generate_fake_city_data(selected_city, base)
     forecast = forecast_city(df_city)
 
     fig = go.Figure()
@@ -124,7 +142,7 @@ for city, base in cities.items():
     fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='預測用電'))
     fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_upper'], mode='lines', name='預測上限', line=dict(dash='dot')))
     fig.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat_lower'], mode='lines', name='預測下限', line=dict(dash='dot')))
-    fig.update_layout(title=f"{city} 用電預測圖表", xaxis_title="時間", yaxis_title="MW")
 
-    st.markdown("")
+    st.markdown(f"### {selected_city} 用電預測圖表")
+    fig.update_layout(title='')
     st.plotly_chart(fig, use_container_width=True)
