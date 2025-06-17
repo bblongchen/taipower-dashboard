@@ -85,7 +85,6 @@ st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容�
 
 from prophet import Prophet
 import numpy as np
-import plotly.express as px
 
 def generate_fake_city_data(city_name, base_value=3600, noise_level=0.05):
     now = pd.Timestamp.now(tz='Asia/Taipei')
