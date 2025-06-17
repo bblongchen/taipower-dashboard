@@ -71,10 +71,6 @@ def generate_fake_history(curr_value, points=72):  # 12小時，每10分鐘1筆
     values = [curr_value * (1 + np.random.uniform(-0.03, 0.03)) for _ in times]
     return pd.DataFrame({"時間": times, "負載(MW)": values})
 
-# 確認 df 不為空，然後畫圖
-if not df.empty:
-    st.dataframe(df, use_container_width=True)
-
     # 產生歷史負載數據 (模擬)
     hist_df = generate_fake_history(total_load)
 
