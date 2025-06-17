@@ -71,3 +71,36 @@ st.dataframe(city_df, use_container_width=True)
 st.subheader("📊 城市電力負載與備轉容量")
 st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容量(MW)"]])
 
+from prophet import Prophet
+import numpy as np
+
+def generate_fake_history(curr_load):
+    base = datetime.utcnow() - timedelta(days=30)
+    data = []
+    for i in range(30):
+        date = base + timedelta(days=i)
+        load = curr_load + np.random.normal(0, 100)
+        data.append({"ds": date.strftime("%Y-%m-%d"), "y": round(load, 2)})
+    return pd.DataFrame(data)
+
+# 假設這是目前尖峰負載（從 Cloudflare proxy API 拿到的）
+curr_load = float(records[0].get("curr_load", 3600))
+
+st.subheader("📈 AI 模擬尖峰負載預測")
+
+try:
+    hist_df = generate_fake_history(curr_load)
+    m = Prophet()
+    m.fit(hist_df)
+    future = m.make_future_dataframe(periods=7)
+    forecast = m.predict(future)
+    forecast_display = forecast.set_index("ds")[["yhat", "yhat_upper", "yhat_lower"]].tail(14)
+    st.line_chart(forecast_display)
+except Exception as e:
+    st.error(f"預測模型錯誤：{e}")
+
+try:
+    from prophet import Prophet
+    st.success("Prophet 模組載入成功 ✅")
+except ImportError as e:
+    st.error(f"Prophet 載入失敗 ❌：{e}")
