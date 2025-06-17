@@ -80,10 +80,6 @@ for city, ratio in city_ratios.items():
 city_df = pd.DataFrame(city_data)
 st.dataframe(city_df, use_container_width=True)
 
-# 明確設定城市欄位順序
-city_df["城市"] = pd.Categorical(city_df["城市"], categories=city_order, ordered=True)
-city_df = city_df.sort_values("城市")
-
 # 圖表呈現
 st.subheader("📊 城市電力負載與備轉容量：六都")
 st.bar_chart(city_df.set_index("城市")[["尖峰負載(MW)", "模擬備轉容量(MW)"]])
