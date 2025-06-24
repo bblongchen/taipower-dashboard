@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 # 設定台北時區
 taipei_tz = pytz.timezone('Asia/Taipei')
 
-@st.cache_data(ttl=600)  # 每10分鐘快取更新
+@st.cache_data(ttl=86400)  # 每天快取更新一次
 def fetch_data():
     url = "https://restless-sunset-f1b0.bblong-chen.workers.dev/"
     try:
